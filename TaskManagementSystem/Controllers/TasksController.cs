@@ -11,14 +11,10 @@ namespace TaskManagementSystem.Controllers
     public class TasksController : ControllerBase
     {
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Manager,Employee")]
         [APIKeyAuthorize]
         [EnableRateLimiting("GetTasks")]
-        public IActionResult GetTasks()
-        {
-            var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-            return Ok($"Your role is: {role}");
-        }
+        public IActionResult GetTasks() => Ok("List of Taskszxczczxcz");
 
         [HttpPost]
         [Authorize(Roles = "Admin,Manager")]

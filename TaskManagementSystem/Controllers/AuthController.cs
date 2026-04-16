@@ -16,9 +16,21 @@ namespace TaskManagementSystem.Controllers
         [EnableRateLimiting("LoginPolicy")]
         public IActionResult Login([FromBody] LoginModel model)
         {
-            // Hardcode a check: if user == "admin" role is "Admin", etc.
-            var token = _jwtService.GenerateToken(model.Username, "Admin");
-            return Ok(new { token });
+            if(model.Username == "admin")
+            {
+                var token = _jwtService.GenerateToken(model.Username, "Admin");
+                return Ok(new { token });
+            }
+            else if (model.Username == "manager")
+            {
+                var token = _jwtService.GenerateToken(model.Username, "Manager");
+                return Ok(new { token });
+            }
+            else
+            {
+                var token = _jwtService.GenerateToken(model.Username, "Employee");
+                return Ok(new { token });
+            }
         }
     }
 }

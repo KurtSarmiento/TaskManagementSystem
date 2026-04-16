@@ -1,7 +1,8 @@
 @TaskManagementSystem_HostAddress = http://localhost:5094
 @ApiKey=SARMIENTOKEY
-@AdminToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwicm9sZSI6IkFkbWluIiwibmJmIjoxNzc2MzQ0ODc3LCJleHAiOjE3NzYzNDg0NzcsImlhdCI6MTc3NjM0NDg3N30.f_ka_IaAAuBLf9Cr2dPWrVcf1f9KoP1IY5DEEYszLc8
-@EmployeeToken=paste_employee_token_here
+@AdminToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwicm9sZSI6IkFkbWluIiwibmJmIjoxNzc2MzQ2OTU2LCJleHAiOjE3NzYzNTA1NTYsImlhdCI6MTc3NjM0Njk1Nn0.hVYZ4P0LlgKitd4TfLzIFz1omCP6cDRT0NL_CU_LOdU
+@ManagerToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6Im1hbmFnZXIiLCJyb2xlIjoiTWFuYWdlciIsIm5iZiI6MTc3NjM0ODE4NCwiZXhwIjoxNzc2MzUxNzg0LCJpYXQiOjE3NzYzNDgxODR9.TPsex_lpDC0TAKSrp2wH4LQL4UA3Cp87ijulz7omB8g
+@EmployeeToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImVtcGxveWVlIiwicm9sZSI6IkVtcGxveWVlIiwibmJmIjoxNzc2MzQ4MTI5LCJleHAiOjE3NzYzNTE3MjksImlhdCI6MTc3NjM0ODEyOX0.An9WlK06tZgteyMgqLfeHu2p9QQFfKKLHsdPizQ2eXc
 
 ### 1. Test API Key Protection (Should fail without header)
 POST {{TaskManagementSystem_HostAddress}}/api/auth/Login
@@ -19,8 +20,8 @@ X-API-KEY: {{ApiKey}}
 Content-Type: application/json
 
 {
-  "username": "admin",
-  "password": "admin"
+  "username": "manager",
+  "password": "manager"
 }
 
 ### 3. Get Tasks
@@ -42,7 +43,7 @@ Content-Type: application/json
 }
 
 ### 5. Admin - Get Users (Admin Only)
-GET {{TaskManagementSystem_HostAddress}}/api/admin/users
+GET {{TaskManagementSystem_HostAddress}}/api/admin/Users
 X-API-KEY: {{ApiKey}}
 Authorization: Bearer {{AdminToken}}
 
@@ -59,3 +60,5 @@ Authorization: Bearer {{AdminToken}}
 DELETE {{TaskManagementSystem_HostAddress}}/api/admin/users/1
 X-API-KEY: {{ApiKey}}
 Authorization: Bearer {{EmployeeToken}}
+
+###
