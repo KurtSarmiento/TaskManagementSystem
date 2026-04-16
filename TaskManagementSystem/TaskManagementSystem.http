@@ -1,6 +1,6 @@
 @TaskManagementSystem_HostAddress = http://localhost:5094
 @ApiKey=SARMIENTOKEY
-@AdminToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwicm9sZSI6IkFkbWluIiwibmJmIjoxNzc2MzQzNzU4LCJleHAiOjE3NzYzNDczNTgsImlhdCI6MTc3NjM0Mzc1OH0.49NRL2ooKnuVARhAmStaep9n27Fnj8cc-jO5x7HU7OQ
+@AdminToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwicm9sZSI6IkFkbWluIiwibmJmIjoxNzc2MzQ0ODc3LCJleHAiOjE3NzYzNDg0NzcsImlhdCI6MTc3NjM0NDg3N30.f_ka_IaAAuBLf9Cr2dPWrVcf1f9KoP1IY5DEEYszLc8
 @EmployeeToken=paste_employee_token_here
 
 ### 1. Test API Key Protection (Should fail without header)
@@ -25,12 +25,14 @@ Content-Type: application/json
 
 ### 3. Get Tasks
 GET {{TaskManagementSystem_HostAddress}}/api/tasks
+Accept: application/json
 X-API-KEY: {{ApiKey}}
 Authorization: Bearer {{AdminToken}}
-Accept: application/json
+
 
 ### 4. Create Task (Manager/Admin only)
-POST {{TaskManagementSystem_HostAddress}}/api/Tasks
+POST {{TaskManagementSystem_HostAddress}}/api/tasks
+X-API-KEY: {{ApiKey}}
 Authorization: Bearer {{AdminToken}}
 Content-Type: application/json
 
@@ -41,16 +43,19 @@ Content-Type: application/json
 
 ### 5. Admin - Get Users (Admin Only)
 GET {{TaskManagementSystem_HostAddress}}/api/admin/users
+X-API-KEY: {{ApiKey}}
 Authorization: Bearer {{AdminToken}}
 
 ### 6. Test Rate Limiting (Admin endpoint - 3 req/min)
 # Click "Send Request" 4 times quickly. 
 # The 4th should return 429 Too Many Requests.
 GET {{TaskManagementSystem_HostAddress}}/api/admin/users
+X-API-KEY: {{ApiKey}}
 Authorization: Bearer {{AdminToken}}
 
 ### 7. Test Role Restriction (Unauthorized Access)
 # Log in as an Employee first, get that token, and try to DELETE a user.
 # Should return 403 Forbidden.
 DELETE {{TaskManagementSystem_HostAddress}}/api/admin/users/1
+X-API-KEY: {{ApiKey}}
 Authorization: Bearer {{EmployeeToken}}

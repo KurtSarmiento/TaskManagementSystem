@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.RateLimiting;
 
@@ -22,10 +23,8 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-
-        // THESE TWO LINES ARE THE FIX:
-        NameClaimType = "unique_name",
-        RoleClaimType = "role"
+        NameClaimType = ClaimTypes.Name,
+        RoleClaimType = ClaimTypes.Role // keep this
     };
 });
 

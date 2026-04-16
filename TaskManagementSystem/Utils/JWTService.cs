@@ -17,7 +17,7 @@ namespace TaskManagementSystem.Utils
                 Subject = new ClaimsIdentity(new[]
                 {
                     new Claim(ClaimTypes.Name, username),
-                    new Claim("role", role) // Matching the "role" string from Program.cs
+                    new Claim(ClaimTypes.Role, role)
                 }),
                 Expires = DateTime.UtcNow.AddHours(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
