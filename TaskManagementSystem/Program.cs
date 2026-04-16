@@ -7,9 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 var jwtKey = "9f3a7c2e5b1d8a4f6c0e92b7d5a3f8c1";
 
-// Add services to the container.
-
-builder.Services.AddAuthentication(options => //to enable jwt tokens
+builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -24,12 +22,16 @@ builder.Services.AddAuthentication(options => //to enable jwt tokens
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+
+        // THESE TWO LINES ARE THE FIX:
+        NameClaimType = "unique_name",
+        RoleClaimType = "role"
     };
 });
 
 builder.Services.AddRateLimiter(options => //to limit the rate of requests to the api
 {
-    options.AddPolicy("Login", context =>
+    options.AddPolicy("LoginPolicy", context =>
     {
         var apiKey = context.Request.Headers["X-API-Key"].ToString();
         return RateLimitPartition.GetFixedWindowLimiter(
@@ -95,11 +97,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseRateLimiter();
+
 app.UseAuthentication();
 
 app.UseAuthorization();
-
-app.UseRateLimiter();
 
 app.MapControllers();
 
