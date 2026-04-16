@@ -1,10 +1,11 @@
 @TaskManagementSystem_HostAddress = http://localhost:5094
-@ApiKey=SARMIENTOKEY
-@AdminToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwicm9sZSI6IkFkbWluIiwibmJmIjoxNzc2MzQ2OTU2LCJleHAiOjE3NzYzNTA1NTYsImlhdCI6MTc3NjM0Njk1Nn0.hVYZ4P0LlgKitd4TfLzIFz1omCP6cDRT0NL_CU_LOdU
-@ManagerToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6Im1hbmFnZXIiLCJyb2xlIjoiTWFuYWdlciIsIm5iZiI6MTc3NjM0ODE4NCwiZXhwIjoxNzc2MzUxNzg0LCJpYXQiOjE3NzYzNDgxODR9.TPsex_lpDC0TAKSrp2wH4LQL4UA3Cp87ijulz7omB8g
-@EmployeeToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImVtcGxveWVlIiwicm9sZSI6IkVtcGxveWVlIiwibmJmIjoxNzc2MzQ4MTI5LCJleHAiOjE3NzYzNTE3MjksImlhdCI6MTc3NjM0ODEyOX0.An9WlK06tZgteyMgqLfeHu2p9QQFfKKLHsdPizQ2eXc
+@ApiKey = SARMIENTOKEY
 
-### 1. Test API Key Protection (Should fail without header)
+@AdminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwicm9sZSI6IkFkbWluIiwibmJmIjoxNzc2MzQ4NDI1LCJleHAiOjE3NzYzNTIwMjUsImlhdCI6MTc3NjM0ODQyNX0.1_KQG7CejcN88bAahD7DkSJZ-QbPESQY6-eBtW0Iyk8
+@ManagerToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6Im1hbmFnZXIiLCJyb2xlIjoiTWFuYWdlciIsIm5iZiI6MTc3NjM0ODY2OCwiZXhwIjoxNzc2MzUyMjY4LCJpYXQiOjE3NzYzNDg2Njh9._MN63a3hgWq0rcinHrCxyDbwx1dAn37glGYvpkYB5-A
+@EmployeeToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImVtcGxveWVlIiwicm9sZSI6IkVtcGxveWVlIiwibmJmIjoxNzc2MzQ4Njg1LCJleHAiOjE3NzYzNTIyODUsImlhdCI6MTc3NjM0ODY4NX0.m_Drkuz8QcoM4gm_f7HPCYoTW6u0kIY-Y_nAUD0MxMg
+
+### test missing API key (401)
 POST {{TaskManagementSystem_HostAddress}}/api/auth/Login
 Content-Type: application/json
 
@@ -13,8 +14,17 @@ Content-Type: application/json
   "password": "admin"
 }
 
-### 2. Login as Admin (Requires API Key)
-# This should return a JWT. Copy it and paste it into the @AdminToken variable above.
+### login (Admin) - Test Rate Limit (5 req/min) (429)
+POST {{TaskManagementSystem_HostAddress}}/api/auth/Login
+X-API-KEY: {{ApiKey}}
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+### login (Manager) - Test Rate Limit (5 req/min) (429)
 POST {{TaskManagementSystem_HostAddress}}/api/auth/Login
 X-API-KEY: {{ApiKey}}
 Content-Type: application/json
@@ -24,41 +34,74 @@ Content-Type: application/json
   "password": "manager"
 }
 
-### 3. Get Tasks
-GET {{TaskManagementSystem_HostAddress}}/api/tasks
-Accept: application/json
+### login (Employee) - Test Rate Limit (5 req/min) (429)
+POST {{TaskManagementSystem_HostAddress}}/api/auth/Login
 X-API-KEY: {{ApiKey}}
-Authorization: Bearer {{AdminToken}}
-
-
-### 4. Create Task (Manager/Admin only)
-POST {{TaskManagementSystem_HostAddress}}/api/tasks
-X-API-KEY: {{ApiKey}}
-Authorization: Bearer {{AdminToken}}
 Content-Type: application/json
 
 {
-  "title": "New Task",
-  "description": "Finish the API"
+  "username": "employee",
+  "password": "employee"
 }
 
-### 5. Admin - Get Users (Admin Only)
-GET {{TaskManagementSystem_HostAddress}}/api/admin/Users
-X-API-KEY: {{ApiKey}}
-Authorization: Bearer {{AdminToken}}
-
-### 6. Test Rate Limiting (Admin endpoint - 3 req/min)
-# Click "Send Request" 4 times quickly. 
-# The 4th should return 429 Too Many Requests.
+### admin: get all users (3 req/min limit) (429)
 GET {{TaskManagementSystem_HostAddress}}/api/admin/users
 X-API-KEY: {{ApiKey}}
 Authorization: Bearer {{AdminToken}}
 
-### 7. Test Role Restriction (Unauthorized Access)
-# Log in as an Employee first, get that token, and try to DELETE a user.
-# Should return 403 Forbidden.
+### admin: get all users (3 req/min limit) (429)
 DELETE {{TaskManagementSystem_HostAddress}}/api/admin/users/1
+X-API-KEY: {{ApiKey}}
+Authorization: Bearer {{AdminToken}}
+
+### employee accessing admin funcs (403)
+GET {{TaskManagementSystem_HostAddress}}/api/admin/users
 X-API-KEY: {{ApiKey}}
 Authorization: Bearer {{EmployeeToken}}
 
+### manager: create task (10 req/min limit) (429)
+POST {{TaskManagementSystem_HostAddress}}/api/tasks
+X-API-KEY: {{ApiKey}}
+Authorization: Bearer {{ManagerToken}}
+Content-Type: application/json
+
+{
+  "title": "Managerial Task",
+  "description": "Assigned by Manager"
+}
+
+### employee: get tasks (20 req/min limit) (429)
+GET {{TaskManagementSystem_HostAddress}}/api/tasks
+X-API-KEY: {{ApiKey}}
+Authorization: Bearer {{EmployeeToken}}
+
+### employee accessing manager funcs (403)
+POST {{TaskManagementSystem_HostAddress}}/api/tasks
+X-API-KEY: {{ApiKey}}
+Authorization: Bearer {{EmployeeToken}}
+Content-Type: application/json
+
+{
+  "title": "sample task",
+  "description": "hnd i2 pwd"
+}
+
+### admin rate limit (3 req/min) (429)
+GET {{TaskManagementSystem_HostAddress}}/api/admin/users
+X-API-KEY: {{ApiKey}}
+Authorization: Bearer {{AdminToken}}
+
+### global task get limit (20 req/min) (429)
+GET {{TaskManagementSystem_HostAddress}}/api/tasks
+X-API-KEY: {{ApiKey}}
+Authorization: Bearer {{AdminToken}}
+
 ###
+GET {{TaskManagementSystem_HostAddress}}/api/tasks
+X-API-KEY: {{ApiKey}}
+Authorization: Bearer {{ManagerToken}}
+
+###
+GET {{TaskManagementSystem_HostAddress}}/api/tasks
+X-API-KEY: {{ApiKey}}
+Authorization: Bearer {{EmployeeToken}}

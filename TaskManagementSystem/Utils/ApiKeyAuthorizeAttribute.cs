@@ -9,6 +9,7 @@ namespace TaskManagementSystem.Utils
         public void OnAuthorization(AuthorizationFilterContext context)
         {
             var configuration = context.HttpContext.RequestServices.GetService(typeof(IConfiguration)) as IConfiguration;
+
             if (!context.HttpContext.Request.Headers.TryGetValue("X-API-KEY", out var extractedApiKey))
             {
                 context.Result = new ContentResult()
@@ -18,15 +19,17 @@ namespace TaskManagementSystem.Utils
                 };
                 return;
             }
-            if (configuration == null || configuration["Security:ApiKey"] == null)
+
+            if (configuration == null || string.IsNullOrEmpty(configuration["Security:ApiKey"]))
             {
                 context.Result = new ContentResult()
                 {
                     StatusCode = 500,
-                    Content = "Configuration Error."
+                    Content = "Server configuration error: API Key not found."
                 };
                 return;
             }
+
             var apiKey = configuration["Security:ApiKey"];
 
             if (!apiKey.Equals(extractedApiKey))
@@ -34,7 +37,7 @@ namespace TaskManagementSystem.Utils
                 context.Result = new ContentResult()
                 {
                     StatusCode = 401,
-                    Content = $"Unauthorized. Expected: '{apiKey}', but got: '{extractedApiKey}'"
+                    Content = "Invalid API Key."
                 };
                 return;
             }

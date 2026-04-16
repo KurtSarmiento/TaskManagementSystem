@@ -24,12 +24,17 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         NameClaimType = ClaimTypes.Name,
-        RoleClaimType = ClaimTypes.Role // keep this
+        RoleClaimType = ClaimTypes.Role
     };
 });
 
 builder.Services.AddRateLimiter(options => //to limit the rate of requests to the api
 {
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = 429;
+        await context.HttpContext.Response.WriteAsync("Too many requests!", token);
+    };
     options.AddPolicy("LoginPolicy", context =>
     {
         var apiKey = context.Request.Headers["X-API-Key"].ToString();
@@ -96,11 +101,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseRateLimiter();
-
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.UseRateLimiter();
 
 app.MapControllers();
 
