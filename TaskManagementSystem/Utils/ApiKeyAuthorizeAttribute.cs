@@ -9,10 +9,13 @@ namespace TaskManagementSystem.Utils
     {
         public void OnAuthorization(AuthorizationFilterContext context)
         {
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<APIKeyAuthorizeAttribute>>();
+
             var configuration = context.HttpContext.RequestServices.GetService(typeof(IConfiguration)) as IConfiguration;
 
             if (!context.HttpContext.Request.Headers.TryGetValue("X-API-KEY", out var extractedApiKey))
             {
+                logger.LogWarning("Invalid API Key attempt from IP {IP}", context.HttpContext.Connection.RemoteIpAddress);
                 context.Result = new ContentResult()
                 {
                     StatusCode = 401,
@@ -45,6 +48,7 @@ namespace TaskManagementSystem.Utils
 
             if (configuration == null)
             {
+                logger.LogWarning("Server configuration error: API Key not found.");
                 context.Result = new ContentResult()
                 {
                     StatusCode = 500,
@@ -92,6 +96,7 @@ namespace TaskManagementSystem.Utils
 
             if (matchedKey == null) //if di nahanap si key sa list ng valid keys na objects
             {
+                logger.LogWarning("API Key is Invalid");
                 context.Result = new ContentResult()
                 {
                     StatusCode = 401,
@@ -102,6 +107,7 @@ namespace TaskManagementSystem.Utils
 
             if (matchedKey.ExpiresAt < DateTime.UtcNow) //if expired na yung key
             {
+                logger.LogWarning("API Key has expired");
                 context.Result = new ContentResult()
                 {
                     StatusCode = 403,

@@ -32,29 +32,52 @@ builder.Services.AddRateLimiter(options => //to limit the rate of requests to th
 {
     options.OnRejected = async (context, token) =>
     {
+        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+        logger.LogWarning("Rate limit exceeded for IP {IP}", context.HttpContext.Connection.RemoteIpAddress);
+
         context.HttpContext.Response.StatusCode = 429;
         await context.HttpContext.Response.WriteAsync("Too many requests!", token);
     };
     options.AddPolicy("LoginPolicy", context =>
     {
+        var role = context.User?.FindFirst(ClaimTypes.Role)?.Value;
+
+        int limit = role switch
+        {
+            "Admin" => 15,
+            "Manager" => 10,
+            "Employee" => 5,
+            _ => 5
+        };
+
         var apiKey = context.Request.Headers["X-API-Key"].ToString();
         return RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: apiKey ?? "anonymous",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 5,
+                PermitLimit = limit,
                 QueueLimit = 0,
                 Window = TimeSpan.FromMinutes(1)
             });
     });
     options.AddPolicy("GetTasks", context =>
     {
+        var role = context.User?.FindFirst(ClaimTypes.Role)?.Value;
+
+        int limit = role switch
+        {
+            "Admin" => 30,
+            "Manager" => 25,
+            "Employee" => 20,
+            _ => 20
+        };
+
         var apiKey = context.Request.Headers["X-API-Key"].ToString();
         return RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: apiKey ?? "Employee",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 20,
+                PermitLimit = limit,
                 QueueLimit = 0,
                 Window = TimeSpan.FromMinutes(1)
             });
