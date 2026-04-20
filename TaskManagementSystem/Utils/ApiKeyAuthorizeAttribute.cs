@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
+using TaskManagementSystem.Models;
 
 namespace TaskManagementSystem.Utils
 {
@@ -52,24 +53,59 @@ namespace TaskManagementSystem.Utils
                 return;
             }
 
-            var validKeys = configuration.GetSection("Security:ApiKeys").Get<List<string>>();
+            //var validKeys = configuration.GetSection("Security:ApiKey").Get<List<string>>(); // this is for getting multiple API keys from the configuration
 
-            if(validKeys == null || validKeys.Count() != 0)
-            {
-                context.Result = new ContentResult()
-                {
-                    StatusCode = 500,
-                    Content = "Server configuration error: API Keys not found."
-                };
-                return;
-            }
+            //if (validKeys == null || validKeys.Count() == 0)
+            //{
+            //    context.Result = new ContentResult()
+            //    {
+            //        StatusCode = 500,
+            //        Content = "Server configuration error: API Keys not found."
+            //    };
+            //    return;
+            //}
 
-            if (!validKeys.Contains(extractedApiKey))
+            //if (!validKeys.Contains(extractedApiKey)) //checking if the extracted API key is in the list of valid API keys
+            //{
+            //    context.Result = new ContentResult()
+            //    {
+            //        StatusCode = 401,
+            //        Content = "Invalid API Key."
+            //    };
+            //    return;
+            //}
+
+            //if (extractedApiKey == "SARMIENTOKEY") //for disabling a certain API key
+            //{
+            //    context.Result = new ContentResult()
+            //    {
+            //        StatusCode = 401,
+            //        Content = "APIKey is disabled"
+            //    };
+            //    return;
+            //}
+
+            //for keys with expiration
+            var validKeys = configuration.GetSection("Security:ApiKeyExpiration").Get<List<ApiKeyConfig>>();
+
+            var matchedKey = validKeys?.FirstOrDefault(x => x.Key == extractedApiKey);
+
+            if (matchedKey == null) //if di nahanap si key sa list ng valid keys na objects
             {
                 context.Result = new ContentResult()
                 {
                     StatusCode = 401,
-                    Content = "Invalid API Key."
+                    Content = "API Key is Invalid"
+                };
+                return;
+            }
+
+            if (matchedKey.ExpiresAt < DateTime.UtcNow) //if expired na yung key
+            {
+                context.Result = new ContentResult()
+                {
+                    StatusCode = 403,
+                    Content = "API Key has expired"
                 };
                 return;
             }
