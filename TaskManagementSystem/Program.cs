@@ -83,6 +83,27 @@ builder.Services.AddRateLimiter(options => //to limit the rate of requests to th
                 Window = TimeSpan.FromMinutes(1)
             });
     });
+    options.AddPolicy("RoleBasedPolicy", context =>
+    {
+        var role = context.User?.FindFirst(ClaimTypes.Role)?.Value;
+
+        int limit = role switch
+        {
+            "Admin" => 50,
+            "Manager" => 30,
+            "Employee" => 10,
+            _ => 5
+        };
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: $"{context.Connection.RemoteIpAddress}",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = limit,
+                QueueLimit = 0,
+                Window = TimeSpan.FromMinutes(1)
+            });
+    });
 });
 
 builder.Services.AddAuthorization();
