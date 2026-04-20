@@ -20,7 +20,29 @@ namespace TaskManagementSystem.Utils
                 return;
             }
 
-            if (configuration == null || string.IsNullOrEmpty(configuration["Security:ApiKey"]))
+            //if (configuration == null || string.IsNullOrEmpty(configuration["Security:ApiKey"])) **ONLY FOR SINGULAR API KEY**
+            //{
+            //    context.Result = new ContentResult()
+            //    {
+            //        StatusCode = 500,
+            //        Content = "Server configuration error: API Key not found."
+            //    };
+            //    return;
+            //}
+
+            //var apiKey = configuration["Security:ApiKey"]; **ONLY FOR SINGULAR API KEY**
+
+            //if (!apiKey.Equals(extractedApiKey))
+            //{
+            //    context.Result = new ContentResult()
+            //    {
+            //        StatusCode = 401,
+            //        Content = "Invalid API Key."
+            //    };
+            //    return;
+            //}
+
+            if (configuration == null)
             {
                 context.Result = new ContentResult()
                 {
@@ -30,9 +52,19 @@ namespace TaskManagementSystem.Utils
                 return;
             }
 
-            var apiKey = configuration["Security:ApiKey"];
+            var validKeys = configuration.GetSection("Security:ApiKeys").Get<List<string>>();
 
-            if (!apiKey.Equals(extractedApiKey))
+            if(validKeys == null || validKeys.Count() != 0)
+            {
+                context.Result = new ContentResult()
+                {
+                    StatusCode = 500,
+                    Content = "Server configuration error: API Keys not found."
+                };
+                return;
+            }
+
+            if (!validKeys.Contains(extractedApiKey))
             {
                 context.Result = new ContentResult()
                 {
