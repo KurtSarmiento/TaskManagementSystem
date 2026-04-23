@@ -1,0 +1,106 @@
+In-Memory via Static Class
+
+What is a static variable?
+Lives in application memory (RAM)
+Is shared across all requests/users
+Exists while the app is running
+
+The BASIC IDEA
+A static field belongs to the class itself, not an instance.
+
+Example:
+public class DataStore
+{
+public static List<string> Items = new List<string>();
+}
+
+Pros
+  Very simple
+  No database setup
+  Fast (RAM-based)
+Perfect for:
+  demos
+  exams
+  prototyping
+Cons
+  Data is lost on restart
+  Not thread-safe by default
+  Not scalable (single instance)
+  Shared across all users (no isolation)
+
+Code example, you can try this yourself fast:
+
+[ApiController]
+[Route("api/[controller]")]
+public class ProductsController : ControllerBase
+{
+// 🔹 Static in-memory storage
+private static List<Product> _products = new List<Product>();
+private static int _currentId = 1;
+
+// 🔹 GET: api/products
+[HttpGet]
+public IActionResult GetAll()
+{
+return Ok(_products);
+}
+
+// 🔹 GET: api/products/1
+[HttpGet("{id}")]
+public IActionResult GetById(int id)
+{
+var product = _products.FirstOrDefault(x => x.Id == id);
+if (product == null)
+return NotFound();
+
+return Ok(product);
+}
+
+// 🔹 POST: api/products
+[HttpPost]
+public IActionResult Create(Product product)
+{
+product.Id = _currentId++;
+_products.Add(product);
+
+return Ok(product);
+}
+
+
+
+
+
+
+// 🔹 PUT: api/products/1
+[HttpPut("{id}")]
+public IActionResult Update(int id, Product updatedProduct)
+{
+var product = _products.FirstOrDefault(x => x.Id == id);
+if (product == null)
+return NotFound();
+
+product.Name = updatedProduct.Name;
+
+return Ok(product);
+}
+
+// 🔹 DELETE: api/products/1
+[HttpDelete("{id}")]
+public IActionResult Delete(int id)
+{
+var product = _products.FirstOrDefault(x => x.Id == id);
+if (product == null)
+return NotFound();
+
+_products.Remove(product);
+
+return Ok();
+}
+
+// 🔹 Model inside controller (for simplicity)
+public class Product
+{
+public int Id { get; set; }
+public string Name { get; set; }
+}
+
